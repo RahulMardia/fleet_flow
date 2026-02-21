@@ -5,11 +5,13 @@ import { useRouter, usePathname } from "next/navigation";
 import { LogoutButton } from "@/lib/LogoutButton";
 import { ROUTES, NAV_ITEMS } from "@/lib/routes";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function DashboardPage() {
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Test Supabase connection
@@ -28,6 +30,41 @@ export default function DashboardPage() {
     };
 
     testConnection();
+
+    // Fetch profiles via server API and compare to current user
+    const fetchProfilesAndUser = async () => {
+      try {
+        // get client user
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr) {
+          console.warn("Could not get client user:", userErr.message);
+        }
+
+        const userId = userData?.user?.id;
+        if (!userId) return;
+
+        const resp = await fetch("/api/profiles");
+        if (!resp.ok) {
+          console.warn("Failed to fetch profiles", resp.status);
+          return;
+        }
+
+        const json = await resp.json();
+        if (!json.success) {
+          console.warn("Profiles API returned error", json.error);
+          return;
+        }
+
+        const profiles = json.profiles || [];
+        const match = profiles.find((p: any) => p.id === userId);
+        if (match) setUserRole(match.role ?? null);
+      } catch (err) {
+        console.error("Error fetching profiles/user:", err);
+      }
+    };
+
+    fetchProfilesAndUser();
+
   }, []);
 
   return (
@@ -73,7 +110,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-black text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome to Fleet Flow</p>
+          <p className="text-gray-600 mt-2">Welcome to Fleet Flow{userRole ? ` — ${userRole}` : ""}</p>
         </div>
 
         {/* Status Cards */}
@@ -139,3 +176,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

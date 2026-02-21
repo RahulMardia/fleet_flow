@@ -4,7 +4,8 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
-import { setAuthToken } from "@/lib/auth";
+import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,19 +32,41 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Simulate auth delay - replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Debug: ensure NEXT_PUBLIC vars were inlined
+      // (partial key logged to avoid exposing full secret)
+      // eslint-disable-next-line no-console
+      console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+      // eslint-disable-next-line no-console
+      console.log(
+        "Supabase anon key present:",
+        !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        "partial:",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice?.(0, 6)
+      );
 
-      // Set auth token on successful login
-      setAuthToken("dummy-jwt-token-" + Date.now());
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (rememberMe) {
-        // In production: persist session preference
+      if (error) {
+        // log full error for debugging
+        // eslint-disable-next-line no-console
+        console.error("Supabase auth error:", error);
+        setError(error.message || "Login failed");
+        return;
       }
 
-      router.push(ROUTES.AUTH.TRIAL);
-    } catch {
-      setError("Invalid credentials. Please try again.");
+      // eslint-disable-next-line no-console
+      console.log("Sign in success:", data);
+//  const supabase = await creat eClient();
+  const { data: profiles, error: profilesError } = await supabase.from("profiles").select();
+     sessionStorage.setItem("nextData", JSON.stringify({ ...data, profiles, profilesError }));
+router.push(ROUTES.DASHBOARD);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Unexpected error during sign in:", err);
+      setError((err as Error).message || "Unexpected error");
     } finally {
       setIsLoading(false);
     }
@@ -65,6 +88,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center select-none">
           <span className="text-[20rem] font-black text-white/[0.01] leading-none transform -rotate-12 translate-y-12">
             FLEET
+            FLOW
           </span>
         </div>
 
