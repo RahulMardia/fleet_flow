@@ -45,13 +45,7 @@ export default function AddVehicleForm({
   const handleReset = () => {
     setForm(initialState)
   }
-  const handleData = async () =>{
-const { data: vehicles } = await supabase.from("vehicles").select();
-  }
-useEffect ( ()  => {
-  handleData();
 
-},[]) 
   return (
     <form
       onSubmit={handleSubmit}

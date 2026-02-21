@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import TripForm from './components/TripForm'
 import TripTable from './components/TripTable'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function TripsPage() {
   const [drivers] = useState([
@@ -19,7 +20,20 @@ export default function TripsPage() {
   ])
 
   const [trips, setTrips] = useState<any[]>([])
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+    const handleData = async () =>{
+const { data: trips } = await supabase.from("trips").select();
+console.log("Data=>",trips);
+setTrips(trips || []);
+setLoading(false)
+  }
+
+useEffect ( ()  => {
+  handleData();
+
+},[]) 
   const handleDispatch = (form: any) => {
     const newTrip = {
       id: crypto.randomUUID(),

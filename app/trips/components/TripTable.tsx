@@ -49,7 +49,8 @@ export default function TripTable({ trips }: { trips: Trip[] }) {
               </td>
             </tr>
           ) : (
-            trips.map((t, i) => (
+            trips.map((t, i) =>
+               (
               <tr
                 key={t.id}
                 className="border-b border-[#2a2d27] hover:bg-[#232620] transition"
@@ -65,7 +66,8 @@ export default function TripTable({ trips }: { trips: Trip[] }) {
                   </span>
                 </td>
               </tr>
-            ))
+            )
+          )
           )}
         </tbody>
       </table>

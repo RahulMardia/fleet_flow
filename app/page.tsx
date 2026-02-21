@@ -1,4 +1,16 @@
+"use client";
+
+import { ROUTES } from "@/lib/routes";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push(ROUTES.AUTH.LOGIN);
+  }, [router]);
+
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 bg-[#1B1E19] overflow-hidden selection:bg-[#2E7536]/30">
       {/* Background Layers */}
